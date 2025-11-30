@@ -17,9 +17,10 @@ type Import struct {
 }
 
 type Imports struct {
-	imports  []*Import
-	destDir  string
-	packages *code.Packages
+	imports        []*Import
+	destDir        string
+	destImportPath string
+	packages       *code.Packages
 }
 
 func (i *Import) String() string {
@@ -49,6 +50,9 @@ func (s *Imports) Reserve(path string, aliases ...string) (string, error) {
 	}
 
 	// if we are referencing our own package we don't need an import
+	if s.destImportPath != "" && s.destImportPath == path {
+		return "", nil
+	}
 	if code.ImportPathForDir(s.destDir) == path {
 		return "", nil
 	}
@@ -89,6 +93,9 @@ func (s *Imports) Lookup(path string) string {
 	path = code.NormalizeVendor(path)
 
 	// if we are referencing our own package we don't need an import
+	if s.destImportPath != "" && s.destImportPath == path {
+		return ""
+	}
 	if code.ImportPathForDir(s.destDir) == path {
 		return ""
 	}

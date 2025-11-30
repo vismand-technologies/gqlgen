@@ -12,14 +12,18 @@ import (
 type PackageConfig struct {
 	Filename      string          `yaml:"filename,omitempty"`
 	Package       string          `yaml:"package,omitempty"`
+	ImportPath    string          `yaml:"import_path,omitempty"`
 	Version       int             `yaml:"version,omitempty"`
 	ModelTemplate string          `yaml:"model_template,omitempty"`
 	Options       map[string]bool `yaml:"options,omitempty"`
 }
 
-func (c *PackageConfig) ImportPath() string {
+func (c *PackageConfig) GetImportPath() string {
 	if !c.IsDefined() {
 		return ""
+	}
+	if c.ImportPath != "" {
+		return c.ImportPath
 	}
 	return code.ImportPathForDir(c.Dir())
 }
@@ -35,7 +39,7 @@ func (c *PackageConfig) Pkg() *types.Package {
 	if !c.IsDefined() {
 		return nil
 	}
-	return types.NewPackage(c.ImportPath(), c.Package)
+	return types.NewPackage(c.GetImportPath(), c.Package)
 }
 
 func (c *PackageConfig) IsDefined() bool {

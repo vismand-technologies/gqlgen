@@ -251,9 +251,15 @@ func (p *Packages) LoadAllNames(importPaths ...string) {
 func (p *Packages) NameForPackage(importPath string) string {
 	p.numNameCalls++
 	p.LoadAllNames(importPath)
+	return p.importToName[NormalizeVendor(importPath)]
+}
 
-	importPath = NormalizeVendor(importPath)
-	return p.importToName[importPath]
+// AddName manually adds a package name to the cache
+func (p *Packages) AddName(importPath string, name string) {
+	if p.importToName == nil {
+		p.importToName = make(map[string]string)
+	}
+	p.importToName[NormalizeVendor(importPath)] = name
 }
 
 // Evict removes a given package import path from the cache. Further calls to Load will fetch it

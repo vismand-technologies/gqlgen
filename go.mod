@@ -24,9 +24,18 @@ require (
 )
 
 require (
+	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/cors v1.2.2
+	github.com/google/go-github/v57 v57.0.0
+	github.com/joho/godotenv v1.5.1
+	golang.org/x/oauth2 v0.33.0
+)
+
+require (
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/net v0.47.0 // indirect

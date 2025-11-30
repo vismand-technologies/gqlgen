@@ -67,6 +67,11 @@ func (m *Plugin) generateSingleFile(data *codegen.Data) error {
 	}
 
 	for _, o := range data.Objects {
+		// Skip introspection types - they're handled internally by gqlgen
+		if strings.HasPrefix(o.Name, "__") {
+			continue
+		}
+
 		if o.HasResolvers() {
 			caser := cases.Title(language.English, cases.NoLower)
 			rewriter.MarkStructCopied(
@@ -104,7 +109,7 @@ func (m *Plugin) generateSingleFile(data *codegen.Data) error {
 		}
 	}
 
-	if fileExists(data.Config.Resolver.Filename) {
+	if !data.Config.SkipExistingResolvers && fileExists(data.Config.Resolver.Filename) {
 		file.name = data.Config.Resolver.Filename
 		file.imports = rewriter.ExistingImports(file.name)
 		file.RemainingSource = rewriter.RemainingSource(file.name)
@@ -151,6 +156,11 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 	copy(objects[len(data.Objects):], data.Inputs)
 
 	for _, o := range objects {
+		// Skip introspection types - they're handled internally by gqlgen
+		if strings.HasPrefix(o.Name, "__") {
+			continue
+		}
+
 		if o.HasResolvers() {
 			fnCase := gqlToResolverName(
 				data.Config.Resolver.Dir(),
@@ -218,16 +228,18 @@ func (m *Plugin) generatePerSchema(data *codegen.Data) error {
 	}
 
 	var allImports []string
-	for _, file := range files {
-		file.imports = rewriter.ExistingImports(file.name)
-		file.RemainingSource = rewriter.RemainingSource(file.name)
+	if !data.Config.SkipExistingResolvers {
+		for _, file := range files {
+			file.imports = rewriter.ExistingImports(file.name)
+			file.RemainingSource = rewriter.RemainingSource(file.name)
 
-		for _, i := range file.imports {
-			allImports = append(allImports, i.ImportPath)
+			for _, i := range file.imports {
+				allImports = append(allImports, i.ImportPath)
+			}
 		}
+		data.Config.Packages.LoadAllNames(
+			allImports...) // Preload all names in one Load call for performance reasons
 	}
-	data.Config.Packages.LoadAllNames(
-		allImports...) // Preload all names in one Load call for performance reasons
 
 	newResolverTemplate := resolverTemplate
 	if data.Config.Resolver.ResolverTemplate != "" {

@@ -47,7 +47,7 @@ func (b *Binder) TypePosition(typ types.Type) token.Position {
 }
 
 func (b *Binder) ObjectPosition(typ types.Object) token.Position {
-	if typ == nil {
+	if typ == nil || b.cfg.SkipPackageLoading {
 		return token.Position{
 			Filename: "unknown",
 		}
@@ -125,6 +125,27 @@ func (b *Binder) DefaultUserObject(name string) (types.Type, error) {
 }
 
 func (b *Binder) FindObject(pkgName, typeName string) (types.Object, error) {
+	if b.cfg.SkipPackageLoading {
+		// For gqlgen internal packages, always load from real packages
+		// These have actual struct fields/methods that need to be bound
+		if strings.HasPrefix(pkgName, "github.com/99designs/gqlgen/") {
+			pkg := b.pkgs.LoadWithTypes(pkgName)
+			if pkg != nil {
+				if obj := pkg.Types.Scope().Lookup(typeName); obj != nil {
+					return obj, nil
+				}
+			}
+		}
+		if b.cfg.PackageLoader != nil {
+			obj := b.cfg.PackageLoader.GetObject(pkgName, typeName)
+			if obj != nil {
+				return obj, nil
+			}
+			return nil, fmt.Errorf("object %s.%s not found in package loader", pkgName, typeName)
+		}
+		return nil, fmt.Errorf("package loading skipped and no package loader provided")
+	}
+
 	if pkgName == "" {
 		return nil, fmt.Errorf("package cannot be nil in FindObject for type: %s", typeName)
 	}

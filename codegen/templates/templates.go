@@ -34,6 +34,9 @@ type Options struct {
 	// at the top of the file. By providing PackageName in the Options, the Render
 	// function will do that for you.
 	PackageName string
+	// ImportPath is the package path of the generated file.
+	// If provided, it is used to prevent self-imports.
+	ImportPath string
 	// Template is a string of the entire template that
 	// will be parsed and rendered. If it's empty,
 	// the plugin processor will look for .gotpl files
@@ -67,15 +70,23 @@ var (
 	goNameRe     = regexp.MustCompile("[^a-zA-Z0-9_]")
 )
 
+// Render is a variable that holds the render function, allowing it to be intercepted
+var Render = defaultRender
+
+// defaultRender is the default implementation of Render
 // Render renders a gql plugin template from the given Options. Render is an
 // abstraction of the text/template package that makes it easier to write gqlgen
 // plugins. If Options.Template is empty, the Render function will look for `.gotpl`
 // files inside the directory where you wrote the plugin.
-func Render(cfg Options) error {
+func defaultRender(cfg Options) error {
 	if CurrentImports != nil {
 		panic(errors.New("recursive or concurrent call to RenderToFile detected"))
 	}
-	CurrentImports = &Imports{packages: cfg.Packages, destDir: filepath.Dir(cfg.Filename)}
+	CurrentImports = &Imports{
+		packages:       cfg.Packages,
+		destDir:        filepath.Dir(cfg.Filename),
+		destImportPath: cfg.ImportPath,
+	}
 
 	funcs := Funcs()
 	for n, f := range cfg.Funcs {

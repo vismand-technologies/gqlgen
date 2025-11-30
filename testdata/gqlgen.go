@@ -46,5 +46,5 @@ func main() {
 		os.Exit(3)
 	}
 
-	fmt.Printf("Generated %s in %4.2fs\n", cfg.Exec.ImportPath(), time.Since(start).Seconds())
+	fmt.Printf("Generated %s in %4.2fs\n", cfg.Exec.GetImportPath(), time.Since(start).Seconds())
 }

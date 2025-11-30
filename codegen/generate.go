@@ -34,6 +34,7 @@ func GenerateCode(data *Data) error {
 func generateSingleFile(data *Data) error {
 	return templates.Render(templates.Options{
 		PackageName:     data.Config.Exec.Package,
+		ImportPath:      data.Config.Exec.GetImportPath(),
 		Filename:        data.Config.Exec.Filename,
 		Data:            data,
 		RegionTags:      true,
@@ -81,6 +82,7 @@ func generatePerSchema(data *Data) error {
 
 		err = templates.Render(templates.Options{
 			PackageName:     data.Config.Exec.Package,
+			ImportPath:      data.Config.Exec.GetImportPath(),
 			Filename:        path,
 			Data:            build,
 			RegionTags:      true,
@@ -138,6 +140,7 @@ func generateRootFile(data *Data) error {
 
 	return templates.Render(templates.Options{
 		PackageName:     data.Config.Exec.Package,
+		ImportPath:      data.Config.Exec.GetImportPath(),
 		Template:        rootTemplate,
 		Filename:        path,
 		Data:            data,

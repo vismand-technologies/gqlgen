@@ -191,10 +191,10 @@ func (m *Plugin) MutateConfig(cfg *config.Config) error {
 	}
 
 	for _, it := range b.Enums {
-		cfg.Models.Add(it.Name, cfg.Model.ImportPath()+"."+templates.ToGoModelName(it.Name))
+		cfg.Models.Add(it.Name, cfg.Model.GetImportPath()+"."+templates.ToGoModelName(it.Name))
 	}
 	for _, it := range b.Models {
-		cfg.Models.Add(it.Name, cfg.Model.ImportPath()+"."+templates.ToGoModelName(it.Name))
+		cfg.Models.Add(it.Name, cfg.Model.GetImportPath()+"."+templates.ToGoModelName(it.Name))
 	}
 	for _, it := range b.Interfaces {
 		// On a given interface we want to keep a reference to all the models that implement it
@@ -209,7 +209,7 @@ func (m *Plugin) MutateConfig(cfg *config.Config) error {
 				}
 			}
 		}
-		cfg.Models.Add(it.Name, cfg.Model.ImportPath()+"."+templates.ToGoModelName(it.Name))
+		cfg.Models.Add(it.Name, cfg.Model.GetImportPath()+"."+templates.ToGoModelName(it.Name))
 	}
 	for _, it := range b.Scalars {
 		cfg.Models.Add(it, "github.com/99designs/gqlgen/graphql.String")
@@ -315,6 +315,7 @@ func (m *Plugin) MutateConfig(cfg *config.Config) error {
 
 	err = templates.Render(templates.Options{
 		PackageName:     cfg.Model.Package,
+		ImportPath:      cfg.Model.GetImportPath(),
 		Filename:        cfg.Model.Filename,
 		Data:            b,
 		GeneratedHeader: true,

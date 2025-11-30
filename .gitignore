@@ -23,3 +23,8 @@ node_modules
 /api/testdata/default/graph/generated.go
 /api/testdata/federation2/graph/federation.go
 /api/testdata/federation2/graph/generated.go
+bin/gqlgen-server
+generated/
+.DS_Store
+generated_.zip
+server

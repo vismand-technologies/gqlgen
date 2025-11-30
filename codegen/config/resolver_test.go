@@ -17,7 +17,7 @@ func TestResolverConfig(t *testing.T) {
 			require.NoError(t, p.Check())
 
 			require.Equal(t, "config_test_data", p.Package)
-			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.ImportPath())
+			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.GetImportPath())
 
 			require.Equal(t, "config_test_data", p.Pkg().Name())
 			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.Pkg().Path())
@@ -34,7 +34,7 @@ func TestResolverConfig(t *testing.T) {
 			require.NoError(t, p.Check())
 
 			require.Equal(t, "wololo", p.Package)
-			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.ImportPath())
+			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.GetImportPath())
 
 			require.Equal(t, "wololo", p.Pkg().Name())
 			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.Pkg().Path())
@@ -50,7 +50,7 @@ func TestResolverConfig(t *testing.T) {
 			require.EqualError(t, p.Check(), "filename must be specified with layout=single-file")
 
 			require.Empty(t, p.Package)
-			require.Empty(t, p.ImportPath())
+			require.Empty(t, p.GetImportPath())
 
 			require.Nil(t, p.Pkg())
 
@@ -90,7 +90,7 @@ func TestResolverConfig(t *testing.T) {
 			require.NoError(t, p.Check())
 
 			require.Equal(t, "config_test_data", p.Package)
-			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.ImportPath())
+			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.GetImportPath())
 
 			require.Equal(t, "config_test_data", p.Pkg().Name())
 			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.Pkg().Path())
@@ -107,7 +107,7 @@ func TestResolverConfig(t *testing.T) {
 			require.NoError(t, p.Check())
 
 			require.Equal(t, "wololo", p.Package)
-			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.ImportPath())
+			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.GetImportPath())
 
 			require.Equal(t, "wololo", p.Pkg().Name())
 			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.Pkg().Path())
@@ -128,7 +128,7 @@ func TestResolverConfig(t *testing.T) {
 			require.NoError(t, p.Check())
 
 			require.Equal(t, "config_test_data", p.Package)
-			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.ImportPath())
+			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.GetImportPath())
 
 			require.Equal(t, "config_test_data", p.Pkg().Name())
 			require.Equal(t, "github.com/99designs/gqlgen/codegen/config/testdata", p.Pkg().Path())
@@ -144,7 +144,7 @@ func TestResolverConfig(t *testing.T) {
 			require.EqualError(t, p.Check(), "dirname must be specified with layout=follow-schema")
 
 			require.Empty(t, p.Package)
-			require.Empty(t, p.ImportPath())
+			require.Empty(t, p.GetImportPath())
 
 			require.Nil(t, p.Pkg())
 

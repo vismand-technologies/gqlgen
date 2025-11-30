@@ -1,177 +1,163 @@
-![gqlgen](https://user-images.githubusercontent.com/980499/133180111-d064b38c-6eb9-444b-a60f-7005a6e68222.png)
+# gqlgen REST API Service
 
-# gqlgen [![Integration](https://github.com/99designs/gqlgen/actions/workflows/integration.yml/badge.svg)](https://github.com/99designs/gqlgen/actions) [![Coverage Status](https://coveralls.io/repos/github/99designs/gqlgen/badge.svg?branch=master)](https://coveralls.io/github/99designs/gqlgen?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/99designs/gqlgen)](https://goreportcard.com/report/github.com/99designs/gqlgen) [![Go Reference](https://pkg.go.dev/badge/github.com/99designs/gqlgen.svg)](https://pkg.go.dev/github.com/99designs/gqlgen) [![Read the Docs](https://badgen.net/badge/docs/available/green)](http://gqlgen.com/)
+A REST API service for GraphQL code generation, built on top of [gqlgen](https://github.com/99designs/gqlgen).
 
-## What is gqlgen?
+## About
 
-[gqlgen](https://github.com/99designs/gqlgen) is a Go library for building GraphQL servers without any fuss.<br/>
+This project extends the excellent [gqlgen](https://github.com/99designs/gqlgen) library by [99designs](https://99designs.com) to provide a REST API interface for GraphQL code generation. It enables generating Go GraphQL server code without requiring a local Go development environment.
 
-- **gqlgen is based on a Schema first approach** — You get to Define your API using the GraphQL [Schema Definition Language](http://graphql.org/learn/schema/).
-- **gqlgen prioritizes Type safety** — You should never see `map[string]interface{}` here.
-- **gqlgen enables Codegen** — We generate the boring bits, so you can focus on building your app quickly.
+### Credits
 
-Still not convinced enough to use **gqlgen**? Compare **gqlgen** with other Go graphql [implementations](https://gqlgen.com/feature-comparison/)
+This project is built on top of **gqlgen** - a Go library for building GraphQL servers. All core code generation logic comes from the original gqlgen project:
 
-## Quick start
+- **Original Project**: [github.com/99designs/gqlgen](https://github.com/99designs/gqlgen)
+- **Documentation**: [gqlgen.com](https://gqlgen.com)
+- **License**: MIT
 
-1. [Initialise a new go module](https://golang.org/doc/tutorial/create-module)
+## Features
 
-```shell
-mkdir example
-cd example
-go mod init example
+- **REST API for Code Generation** - Generate GraphQL server code via HTTP endpoints
+- **In-Memory Generation** - No filesystem dependencies for code generation
+- **GitHub Integration** - Fetch user types from GitHub for AutoBind and custom models
+- **Zip Download** - Download generated code as a zip archive
+- **GitHub Sync** - Push generated code directly to GitHub repositories
+- **Custom Module Names** - Specify your own Go module path
+
+## Project Structure
+
+```
+├── cmd/
+│   └── server/          # REST API server entry point
+├── handlers/            # HTTP request handlers
+├── service/
+│   ├── memory/          # In-memory code generation
+│   └── github/          # GitHub package fetching
+├── codegen/             # Core gqlgen code generation (from upstream)
+├── plugin/              # gqlgen plugins (modelgen, resolvergen, etc.)
+├── graphql/             # GraphQL runtime and introspection
+└── docs/                # API documentation
 ```
 
-2. Add `github.com/99designs/gqlgen` to your project, as a [tool dependency](https://go.dev/doc/modules/managing-dependencies#tools)
+## Quick Start
+
+### 1. Start the REST Server
 
 ```shell
-go get -tool github.com/99designs/gqlgen
+go run cmd/server/main.go
 ```
 
-3. Initialise gqlgen config and generate models
+The server starts on `http://localhost:8080` by default.
+
+### 2. Generate Code (Basic)
 
 ```shell
+curl -X POST http://localhost:8080/api/generate/zip \
+  -F "schema=@schema.graphqls" \
+  -F 'config={"module_name": "github.com/myorg/myproject"}' \
+  -o generated.zip
+```
+
+### 3. Generate with GitHub AutoBind
+
+Fetch types from your existing GitHub repository:
+
+```shell
+curl -X POST http://localhost:8080/api/generate/zip \
+  -F "schema=@schema.graphqls" \
+  -F 'config={
+    "module_name": "github.com/myorg/myproject",
+    "autobind": ["github.com/myorg/myproject/models"],
+    "github_token": "ghp_your_token"
+  }' \
+  -o generated.zip
+```
+
+### 4. Generate with Custom Model Mappings
+
+Map GraphQL types to existing Go types:
+
+```shell
+curl -X POST http://localhost:8080/api/generate/zip \
+  -F "schema=@schema.graphqls" \
+  -F 'config={
+    "module_name": "github.com/myorg/myproject",
+    "models": {
+      "User": "github.com/myorg/myproject/models.User",
+      "Post": "github.com/myorg/myproject/models.Post"
+    },
+    "github_token": "ghp_your_token"
+  }' \
+  -o generated.zip
+```
+
+### 5. Sync to GitHub Repository
+
+```shell
+curl -X POST http://localhost:8080/api/generate/github \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schema": "type Query { hello: String! }",
+    "github": {
+      "owner": "your-username",
+      "repo": "your-repo",
+      "branch": "main",
+      "path": "graph"
+    },
+    "token": "ghp_your_github_token"
+  }'
+```
+
+## API Configuration Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `module_name` | string | Go module name for generated code |
+| `package_name` | string | Package name for exec code |
+| `model_package` | string | Package name for models |
+| `resolver_package` | string | Package name for resolvers |
+| `autobind` | []string | GitHub package paths to scan for types |
+| `models` | map | GraphQL type to Go type mappings |
+| `github_token` | string | GitHub token for private repos |
+| `github_ref` | string | Git ref (branch/tag/commit) |
+| `omit_slice_element_pointers` | bool | Omit pointers in slice elements |
+| `omit_getters` | bool | Omit interface getters |
+
+See [REST API Documentation](docs/rest-api.md) for complete endpoint details.
+
+## Using gqlgen CLI (Traditional)
+
+This project also supports the traditional gqlgen CLI workflow:
+
+```shell
+# Initialize a new project
 go tool gqlgen init
+
+# Generate code from existing config
+go tool gqlgen generate
 ```
 
-4. Start the graphql server
+## Documentation
 
-```shell
-go run server.go
-```
-
-More help to get started:
-
-- [Getting started tutorial](https://gqlgen.com/getting-started/) - a comprehensive guide to help you get started
-- [Real-world examples](https://github.com/99designs/gqlgen/tree/master/_examples) show how to create GraphQL applications
-- [Reference docs](https://pkg.go.dev/github.com/99designs/gqlgen) for the APIs
-
-## Reporting Issues
-
-If you think you've found a bug, or something isn't behaving the way you think it should, please raise an [issue](https://github.com/99designs/gqlgen/issues) on GitHub.
+- [REST API Reference](docs/rest-api.md)
+- [gqlgen Documentation](https://gqlgen.com)
+- [Getting Started Tutorial](https://gqlgen.com/getting-started/)
+- [Examples](https://github.com/99designs/gqlgen/tree/master/_examples)
 
 ## Contributing
 
-We welcome contributions, Read our [Contribution Guidelines](https://github.com/99designs/gqlgen/blob/master/CONTRIBUTING.md) to learn more about contributing to **gqlgen**
+Contributions are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## Frequently asked questions
+## License
 
-### How do I prevent fetching child objects that might not be used?
+This project is licensed under the MIT License - see the original [gqlgen license](https://github.com/99designs/gqlgen/blob/master/LICENSE).
 
-When you have nested or recursive schema like this:
+## Acknowledgments
 
-```graphql
-type User {
-	id: ID!
-	name: String!
-	friends: [User!]!
-}
-```
+- [99designs](https://99designs.com) for creating and maintaining gqlgen
+- The gqlgen community for their contributions and feedback
 
-You need to tell gqlgen that it should only fetch friends if the user requested it. There are two ways to do this:
+## Resources
 
-### Using Custom Models
-
-Write a custom model that omits the friends field:
-
-```go
-type User struct {
-  ID int
-  Name string
-}
-```
-
-And reference the model in `gqlgen.yml`:
-
-```yaml
-# gqlgen.yml
-models:
-  User:
-    model: github.com/you/pkg/model.User # go import path to the User struct above
-```
-
-### Using Explicit Resolvers
-
-If you want to keep using the generated model, mark the field as requiring a resolver explicitly in `gqlgen.yml` like this:
-
-```yaml
-# gqlgen.yml
-models:
-  User:
-    fields:
-      friends:
-        resolver: true # force a resolver to be generated
-```
-
-After doing either of the above and running generate we will need to provide a resolver for friends:
-
-```go
-func (r *userResolver) Friends(ctx context.Context, obj *User) ([]*User, error) {
-  // select * from user where friendid = obj.ID
-  return friends,  nil
-}
-```
-
-You can also use inline config with directives to achieve the same result
-
-```graphql
-directive @goModel(
-	model: String
-	models: [String!]
-) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
-
-directive @goField(
-	forceResolver: Boolean
-	name: String
-	omittable: Boolean
-	type: String
-) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
-
-type User @goModel(model: "github.com/you/pkg/model.User") {
-	id: ID! @goField(name: "todoId")
-	friends: [User!]! @goField(forceResolver: true)
-}
-```
-
-The field resolvers will be executed concurrently in separate goroutines. The degree of concurrency can be customized with the [`worker_limit` configuration attribute](https://gqlgen.com/config/).
-
-### Can I change the type of the ID from type String to Type Int?
-
-Yes! You can by remapping it in config as seen below:
-
-```yaml
-models:
-  ID: # The GraphQL type ID is backed by
-    model:
-      - github.com/99designs/gqlgen/graphql.IntID # a go integer
-      - github.com/99designs/gqlgen/graphql.ID # or a go string
-      - github.com/99designs/gqlgen/graphql.UintID # or a go uint
-```
-
-This means gqlgen will be able to automatically bind to strings or ints for models you have written yourself, but the
-first model in this list is used as the default type and it will always be used when:
-
-- Generating models based on schema
-- As arguments in resolvers
-
-There isn't any way around this, gqlgen has no way to know what you want in a given context.
-
-### Why do my interfaces have getters? Can I disable these?
-
-These were added in v0.17.14 to allow accessing common interface fields without casting to a concrete type.
-However, certain fields, like Relay-style Connections, cannot be implemented with simple getters.
-
-If you'd prefer to not have getters generated in your interfaces, you can add the following in your `gqlgen.yml`:
-
-```yaml
-# gqlgen.yml
-omit_getters: true
-```
-
-## Other Resources
-
-- [Christopher Biscardi @ Gophercon UK 2018](https://youtu.be/FdURVezcdcw)
-- [Introducing gqlgen: a GraphQL Server Generator for Go](https://99designs.com.au/blog/engineering/gqlgen-a-graphql-server-generator-for-go/)
-- [Dive into GraphQL by Iván Corrales Solera](https://medium.com/@ivan.corrales.solera/dive-into-graphql-9bfedf22e1a)
-- [Sample Project built on gqlgen with Postgres by Oleg Shalygin](https://github.com/oshalygin/gqlgen-pg-todo-example)
-- [Hackernews GraphQL Server with gqlgen by Shayegan Hooshyari](https://www.howtographql.com/graphql-go/0-introduction/)
+- [gqlgen Documentation](https://gqlgen.com)
+- [GraphQL Specification](https://spec.graphql.org/)
+- [Go GraphQL Tutorial](https://gqlgen.com/getting-started/)

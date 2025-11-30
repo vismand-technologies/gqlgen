@@ -172,13 +172,13 @@ func Generate(cfg *config.Config, option ...Option) error {
 }
 
 func validate(cfg *config.Config) error {
-	roots := []string{cfg.Exec.ImportPath()}
+	roots := []string{cfg.Exec.GetImportPath()}
 	if cfg.Model.IsDefined() {
-		roots = append(roots, cfg.Model.ImportPath())
+		roots = append(roots, cfg.Model.GetImportPath())
 	}
 
 	if cfg.Resolver.IsDefined() {
-		roots = append(roots, cfg.Resolver.ImportPath())
+		roots = append(roots, cfg.Resolver.GetImportPath())
 	}
 
 	cfg.Packages.LoadAll(roots...)

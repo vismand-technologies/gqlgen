@@ -14,6 +14,7 @@ type ResolverConfig struct {
 	Filename            string         `yaml:"filename,omitempty"`
 	FilenameTemplate    string         `yaml:"filename_template,omitempty"`
 	Package             string         `yaml:"package,omitempty"`
+	ImportPath          string         `yaml:"import_path,omitempty"`
 	Type                string         `yaml:"type,omitempty"`
 	Layout              ResolverLayout `yaml:"layout,omitempty"`
 	DirName             string         `yaml:"dir"`
@@ -81,7 +82,10 @@ func (r *ResolverConfig) Check() error {
 	return nil
 }
 
-func (r *ResolverConfig) ImportPath() string {
+func (r *ResolverConfig) GetImportPath() string {
+	if r.ImportPath != "" {
+		return r.ImportPath
+	}
 	if r.Dir() == "" {
 		return ""
 	}
@@ -106,7 +110,7 @@ func (r *ResolverConfig) Pkg() *types.Package {
 	if r.Dir() == "" {
 		return nil
 	}
-	return types.NewPackage(r.ImportPath(), r.Package)
+	return types.NewPackage(r.GetImportPath(), r.Package)
 }
 
 func (r *ResolverConfig) IsDefined() bool {

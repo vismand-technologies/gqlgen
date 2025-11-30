@@ -60,12 +60,20 @@ type Config struct {
 	EnableModelJsonOmitzeroTag     *bool          `yaml:"enable_model_json_omitzero_tag,omitempty"`
 	SkipValidation                 bool           `yaml:"skip_validation,omitempty"`
 	SkipModTidy                    bool           `yaml:"skip_mod_tidy,omitempty"`
+	SkipPackageLoading             bool           `yaml:"skip_package_loading,omitempty"`
+	SkipExistingResolvers          bool           `yaml:"skip_existing_resolvers,omitempty"`
+	PackageLoader                  PackageLoader  `yaml:"-"`
 	Sources                        []*ast.Source  `yaml:"-"`
 	Packages                       *code.Packages `yaml:"-"`
 	Schema                         *ast.Schema    `yaml:"-"`
 
 	// Deprecated: use Federation instead. Will be removed next release
 	Federated bool `yaml:"federated,omitempty"`
+}
+
+type PackageLoader interface {
+	GetPackage(path string) *types.Package
+	GetObject(pkgPath, typeName string) types.Object
 }
 
 var cfgFilenames = []string{".gqlgen.yml", "gqlgen.yml", "gqlgen.yaml"}
@@ -603,7 +611,7 @@ func (c *Config) check() error {
 	if err := c.Exec.Check(); err != nil {
 		return fmt.Errorf("config.exec: %w", err)
 	}
-	fileList[c.Exec.ImportPath()] = append(fileList[c.Exec.ImportPath()], FilenamePackage{
+	fileList[c.Exec.GetImportPath()] = append(fileList[c.Exec.GetImportPath()], FilenamePackage{
 		Filename: c.Exec.Filename,
 		Package:  c.Exec.Package,
 		Declaree: "exec",
@@ -613,7 +621,7 @@ func (c *Config) check() error {
 		if err := c.Model.Check(); err != nil {
 			return fmt.Errorf("config.model: %w", err)
 		}
-		fileList[c.Model.ImportPath()] = append(fileList[c.Model.ImportPath()], FilenamePackage{
+		fileList[c.Model.GetImportPath()] = append(fileList[c.Model.GetImportPath()], FilenamePackage{
 			Filename: c.Model.Filename,
 			Package:  c.Model.Package,
 			Declaree: "model",
@@ -623,8 +631,8 @@ func (c *Config) check() error {
 		if err := c.Resolver.Check(); err != nil {
 			return fmt.Errorf("config.resolver: %w", err)
 		}
-		fileList[c.Resolver.ImportPath()] = append(
-			fileList[c.Resolver.ImportPath()],
+		fileList[c.Resolver.GetImportPath()] = append(
+			fileList[c.Resolver.GetImportPath()],
 			FilenamePackage{
 				Filename: c.Resolver.Filename,
 				Package:  c.Resolver.Package,
@@ -636,15 +644,15 @@ func (c *Config) check() error {
 		if err := c.Federation.Check(); err != nil {
 			return fmt.Errorf("config.federation: %w", err)
 		}
-		fileList[c.Federation.ImportPath()] = append(
-			fileList[c.Federation.ImportPath()],
+		fileList[c.Federation.GetImportPath()] = append(
+			fileList[c.Federation.GetImportPath()],
 			FilenamePackage{
 				Filename: c.Federation.Filename,
 				Package:  c.Federation.Package,
 				Declaree: "federation",
 			},
 		)
-		if c.Federation.ImportPath() != c.Exec.ImportPath() {
+		if c.Federation.GetImportPath() != c.Exec.GetImportPath() {
 			return errors.New("federation and exec must be in the same package")
 		}
 	}

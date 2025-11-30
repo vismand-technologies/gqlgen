@@ -31,8 +31,8 @@ func (m *Plugin) Name() string {
 
 func (m *Plugin) GenerateCode(data *codegen.Data) error {
 	serverBuild := &ServerBuild{
-		ExecPackageName:     data.Config.Exec.ImportPath(),
-		ResolverPackageName: data.Config.Resolver.ImportPath(),
+		ExecPackageName:     data.Config.Exec.GetImportPath(),
+		ResolverPackageName: data.Config.Resolver.GetImportPath(),
 	}
 
 	if _, err := os.Stat(m.filename); errors.Is(err, fs.ErrNotExist) {

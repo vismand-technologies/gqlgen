@@ -12,6 +12,7 @@ import (
 
 type ExecConfig struct {
 	Package string     `yaml:"package,omitempty"`
+	ImportPath string  `yaml:"import_path,omitempty"`
 	Layout  ExecLayout `yaml:"layout,omitempty"` // Default: single-file
 
 	// Only for single-file layout:
@@ -76,7 +77,10 @@ func (r *ExecConfig) Check() error {
 	return nil
 }
 
-func (r *ExecConfig) ImportPath() string {
+func (r *ExecConfig) GetImportPath() string {
+	if r.ImportPath != "" {
+		return r.ImportPath
+	}
 	if r.Dir() == "" {
 		return ""
 	}
@@ -101,7 +105,7 @@ func (r *ExecConfig) Pkg() *types.Package {
 	if r.Dir() == "" {
 		return nil
 	}
-	return types.NewPackage(r.ImportPath(), r.Package)
+	return types.NewPackage(r.GetImportPath(), r.Package)
 }
 
 func (r *ExecConfig) IsDefined() bool {
